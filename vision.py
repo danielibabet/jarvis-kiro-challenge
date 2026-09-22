@@ -4,6 +4,10 @@ vision.py — Detección de manos con MediaPipe Tasks API (≥ 0.10 / 1.x) y Ope
 La API legacy `mp.solutions` fue eliminada en MediaPipe 0.10+.
 Ahora se usa `mediapipe.tasks.python.vision.HandLandmarker` con un fichero
 de modelo .task que se descarga automáticamente si no está presente.
+
+El dedo índice de la primera mano detectada controla el cursor del ratón.
+Las coordenadas normalizadas de MediaPipe se convierten a píxeles de pantalla
+mediante normalize_coordinates (control.py) y se aplican con pyautogui.moveTo.
 """
 
 import urllib.request
@@ -11,8 +15,11 @@ from pathlib import Path
 
 import cv2
 import mediapipe as mp
-from mediapipe.tasks.python import vision as mp_vision
+import pyautogui
 from mediapipe.tasks import python as mp_tasks
+from mediapipe.tasks.python import vision as mp_vision
+
+from control import normalize_coordinates
 
 # ---------------------------------------------------------------------------
 # Constantes
@@ -25,6 +32,10 @@ MODEL_PATH = Path(__file__).parent / "hand_landmarker.task"
 
 # Índices de landmarks (igual que la API legacy)
 INDEX_FINGER_TIP = 8
+
+# Factor de suavizado del movimiento del ratón.
+# Cuanto mayor sea el valor, más lento y suave es el movimiento.
+SMOOTHING = 5
 
 # Conexiones entre landmarks para dibujar el esqueleto de la mano manualmente
 HAND_CONNECTIONS = [
@@ -95,6 +106,14 @@ def _draw_hand(frame: "cv2.Mat", landmarks: list, width: int, height: int) -> No
 def main() -> None:
     model_path = _ensure_model()
 
+    # Resolución real de la pantalla (ej. 2560×1440)
+    screen_width, screen_height = pyautogui.size()
+
+    # Desactiva la protección fail-safe de pyautogui para que el movimiento
+    # del ratón no se interrumpa al llegar a las esquinas.
+    # Cámbialo a True si quieres poder abortar moviendo el ratón a (0, 0).
+    pyautogui.FAILSAFE = False
+
     BaseOptions = mp_tasks.BaseOptions
     HandLandmarker = mp_vision.HandLandmarker
     HandLandmarkerOptions = mp_vision.HandLandmarkerOptions
@@ -113,12 +132,19 @@ def main() -> None:
     if not cap.isOpened():
         raise RuntimeError("No se pudo acceder a la cámara web.")
 
+    # Posición suavizada del ratón; se inicializa en el centro de la pantalla
+    prev_x = screen_width // 2
+    prev_y = screen_height // 2
+
     with HandLandmarker.create_from_options(options) as landmarker:
         while True:
             ret, frame = cap.read()
             if not ret:
                 print("No se pudo leer el frame. Saliendo…")
                 break
+
+            # Invertir horizontalmente para efecto espejo natural
+            frame = cv2.flip(frame, 1)
 
             frame_height, frame_width = frame.shape[:2]
             timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
@@ -130,6 +156,9 @@ def main() -> None:
             result = landmarker.detect_for_video(mp_image, timestamp_ms)
 
             if result.hand_landmarks:
+                # Solo la primera mano controla el ratón para evitar conflictos
+                primary_hand = result.hand_landmarks[0]
+
                 for hand_landmarks in result.hand_landmarks:
                     _draw_hand(frame, hand_landmarks, frame_width, frame_height)
 
@@ -146,6 +175,23 @@ def main() -> None:
                         (0, 255, 0),
                         2,
                     )
+
+                # Obtener coordenadas normalizadas del índice de la mano primaria
+                # y mapearlas a la resolución de la pantalla
+                tip = primary_hand[INDEX_FINGER_TIP]
+                mouse_x, mouse_y = normalize_coordinates(
+                    tip.x, tip.y, screen_width, screen_height
+                )
+
+                # Suavizado exponencial: interpola entre la posición anterior
+                # y la nueva usando el factor SMOOTHING (EMA)
+                curr_x = prev_x + (mouse_x - prev_x) / SMOOTHING
+                curr_y = prev_y + (mouse_y - prev_y) / SMOOTHING
+
+                pyautogui.moveTo(curr_x, curr_y, duration=0.0)
+
+                prev_x = curr_x
+                prev_y = curr_y
 
             cv2.imshow("Jarvis - Vision", frame)
 
