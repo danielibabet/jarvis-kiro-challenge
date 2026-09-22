@@ -10,6 +10,7 @@ Las coordenadas normalizadas de MediaPipe se convierten a píxeles de pantalla
 mediante normalize_coordinates (control.py) y se aplican con pyautogui.moveTo.
 """
 
+import time
 import urllib.request
 from pathlib import Path
 
@@ -19,6 +20,7 @@ import pyautogui
 from mediapipe.tasks import python as mp_tasks
 from mediapipe.tasks.python import vision as mp_vision
 
+from brain import ask_ollama
 from control import normalize_coordinates
 
 # ---------------------------------------------------------------------------
@@ -36,6 +38,12 @@ INDEX_FINGER_TIP = 8
 # Factor de suavizado del movimiento del ratón.
 # Cuanto mayor sea el valor, más lento y suave es el movimiento.
 SMOOTHING = 5
+
+# Tiempo (segundos) que el puño debe mantenerse cerrado para activar Jarvis
+FIST_HOLD = 1.5
+
+# Cooldown (segundos) entre capturas consecutivas para no saturar Ollama
+JARVIS_COOLDOWN = 10
 
 # Conexiones entre landmarks para dibujar el esqueleto de la mano manualmente
 HAND_CONNECTIONS = [
@@ -80,6 +88,32 @@ def get_index_finger_coordinates(
     x = int(tip.x * frame_width)
     y = int(tip.y * frame_height)
     return (x, y)
+
+
+# ---------------------------------------------------------------------------
+# Detección de gesto: puño cerrado
+# ---------------------------------------------------------------------------
+# Pares (tip, mcp) para índice, medio, anular y meñique.
+# Un dedo está doblado cuando su punta (tip) queda por debajo de su nudillo
+# proximal (MCP) en el eje Y de la imagen (Y crece hacia abajo).
+_FINGER_PAIRS = [(8, 5), (12, 9), (16, 13), (20, 17)]
+
+
+def is_fist(hand_landmarks: list) -> bool:
+    """
+    Devuelve True si los cuatro dedos (índice, medio, anular, meñique)
+    están doblados hacia la palma, formando un puño cerrado.
+
+    Args:
+        hand_landmarks: Lista de 21 NormalizedLandmark de una mano.
+
+    Returns:
+        True si todos los dedos están doblados, False en caso contrario.
+    """
+    return all(
+        hand_landmarks[tip].y > hand_landmarks[mcp].y
+        for tip, mcp in _FINGER_PAIRS
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -135,6 +169,10 @@ def main() -> None:
     # Posición suavizada del ratón; se inicializa en el centro de la pantalla
     prev_x = screen_width // 2
     prev_y = screen_height // 2
+
+    # Estado para la detección de puño sostenido
+    fist_start: float | None = None   # timestamp en que comenzó el puño
+    last_capture: float = 0.0         # timestamp de la última captura enviada a Ollama
 
     with HandLandmarker.create_from_options(options) as landmarker:
         while True:
@@ -192,6 +230,44 @@ def main() -> None:
 
                 prev_x = curr_x
                 prev_y = curr_y
+
+                # --- Detección de puño y trigger de Jarvis ---
+                now = time.time()
+                if is_fist(primary_hand):
+                    if fist_start is None:
+                        fist_start = now  # inicio del gesto
+
+                    elapsed = now - fist_start
+                    cooldown_remaining = JARVIS_COOLDOWN - (now - last_capture)
+
+                    # Barra de progreso visual (rojo) en la parte inferior del frame
+                    progress = min(elapsed / FIST_HOLD, 1.0)
+                    bar_w = int(200 * progress)
+                    cv2.rectangle(frame, (10, frame_height - 30), (210, frame_height - 10), (50, 50, 50), -1)
+                    cv2.rectangle(frame, (10, frame_height - 30), (10 + bar_w, frame_height - 10), (0, 0, 255), -1)
+                    cv2.putText(frame, "Puno", (215, frame_height - 12),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 255), 2)
+
+                    if elapsed >= FIST_HOLD and cooldown_remaining <= 0:
+                        print("[Jarvis] Puño detectado — capturando pantalla…")
+                        screenshot_path = "pantalla.png"
+                        pyautogui.screenshot(screenshot_path)
+
+                        print("[Jarvis] Consultando a Ollama…")
+                        respuesta = ask_ollama(
+                            "Eres Jarvis. Describe de forma muy breve y directa lo que ves en esta interfaz",
+                            image_path=screenshot_path,
+                        )
+                        print(f"[Jarvis] {respuesta}")
+
+                        last_capture = now   # reinicia el cooldown
+                        fist_start = None    # requiere soltar y volver a cerrar el puño
+                else:
+                    fist_start = None  # se soltó el puño antes de tiempo
+
+            else:
+                # Sin mano detectada: resetear temporizador de puño
+                fist_start = None
 
             cv2.imshow("Jarvis - Vision", frame)
 
