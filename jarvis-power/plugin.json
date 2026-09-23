@@ -1,0 +1,9 @@
+{
+  "name": "jarvis-vision-power",
+  "version": "1.0.0",
+  "description": "Kiro Power for Jarvis: packages best practices, agent skills, and workflows for computer vision control using OpenCV, MediaPipe, and PyAutoGUI.",
+  "keywords": ["opencv", "mediapipe", "pyautogui", "vision", "hand-tracking", "jarvis"],
+  "skills": [
+    "skills/vision"
+  ]
+}
