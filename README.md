@@ -8,8 +8,6 @@
 </p>
 
 <p align="center">
-  <a href="https://buymeacoffee.com/dibanezb">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42" width="150" />
   </a>
 </p>
 
@@ -56,4 +54,3 @@ python vision.py
 ## Support & Author
 
 - **Daniel Ibáñez** - [@danielibabet](https://github.com/danielibabet)
-- If you find this project helpful, consider supporting: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/dibanezb)
