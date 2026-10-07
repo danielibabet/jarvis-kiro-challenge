@@ -1,17 +1,52 @@
-# Jarvis - Asistente de IA Local y Control por Visión Artificial
+﻿# Jarvis - Local AI Desktop Assistant with Computer Vision
 
-Proyecto desarrollado para el **Kiro University Challenge (Septiembre 2026)**. 
-Jarvis es un asistente local que combina modelos de lenguaje de código abierto con control de escritorio mediante visión artificial, permitiendo interactuar con el sistema operativo sin ratón ni teclado convencionales.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV"/>
+  <img src="https://img.shields.io/badge/MediaPipe-0097A7?style=for-the-badge&logo=google&logoColor=white" alt="MediaPipe"/>
+  <img src="https://img.shields.io/badge/Ollama_Local_LLM-000000?style=for-the-badge&logo=ollama&logoColor=white" alt="Ollama"/>
+</p>
 
-## Arquitectura y Stack Tecnológico
-* **Cerebro (LLM Local):** Ollama ejecutando modelos de código abierto (Qwen / Gemma).
-* **Visión y Reconocimiento:** OpenCV y MediaPipe para el rastreo de gestos y manos a través de la webcam.
-* **Control de Escritorio:** PyAutoGUI para la ejecución de macros, movimiento del cursor y control de la interfaz.
-* **Desarrollo y Testing:** Kiro IDE (implementando Hooks de automatización y Property-Based Testing para la validación de coordenadas).
+Developed for the **Kiro University Challenge**. Jarvis is an autonomous local AI assistant that combines open-source Large Language Models (LLMs) with computer vision gesture tracking to control your desktop interface without a physical mouse or keyboard.
 
-## Requisitos de Hardware
-* PC con cámara web y micrófono.
-* Recursos suficientes para la ejecución local de modelos LLM.
+---
 
-## Autor
-Daniel Ibáñez Betés
+## Core Architecture & Stack
+
+- 🧠 **Local LLM Intelligence:** Powered by Ollama running open-source instruction-tuned models (e.g., Qwen / Gemma) locally for private, low-latency reasoning.
+- 👁️ **Computer Vision & Hand Tracking:** Real-time gesture and landmark recognition using **OpenCV** and **MediaPipe**.
+- 🖱️ **Desktop Control & Automation:** **PyAutoGUI** coordinate mapping for virtual cursor motion, clicks, drag-and-drop, and shortcuts.
+- 🧪 **Testing & Quality Assurance:** Property-Based Testing for coordinate boundary validation and automation hooks.
+
+---
+
+## Hardware & System Requirements
+
+- Webcam and microphone.
+- Multi-core CPU / GPU capable of local LLM inference via Ollama.
+- Python 3.10+.
+
+---
+
+## Quick Setup
+
+`ash
+# Clone the repository
+git clone https://github.com/danielibabet/jarvis-kiro-challenge.git
+cd jarvis-kiro-challenge
+
+# Install Python dependencies
+pip install opencv-python mediapipe pyautogui requests
+
+# Ensure Ollama is running locally
+ollama run qwen2.5:latest
+
+# Run Jarvis
+python vision.py
+`
+
+---
+
+## Author
+
+- **Daniel Ibáñez** - [@danielibabet](https://github.com/danielibabet)
