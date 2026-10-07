@@ -1,4 +1,4 @@
-﻿# Jarvis - Local AI Desktop Assistant with Computer Vision
+# Jarvis - Local AI Desktop Assistant with Computer Vision
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
@@ -17,16 +17,16 @@ Developed for the **Kiro University Challenge**. Jarvis is an autonomous local A
 
 ---
 
-## 🏛️ Core Architecture & Stack
+## Core Architecture & Stack
 
-- 🧠 **Local LLM Intelligence:** Powered by Ollama running open-source instruction-tuned models (e.g., Qwen / Gemma) locally for private, low-latency reasoning.
-- 👁️ **Computer Vision & Hand Tracking:** Real-time gesture and landmark recognition using **OpenCV** and **MediaPipe**.
-- 🖱️ **Desktop Control & Automation:** **PyAutoGUI** coordinate mapping for virtual cursor motion, clicks, drag-and-drop, and shortcuts.
-- 🧪 **Testing & Quality Assurance:** Property-Based Testing for coordinate boundary validation and automation hooks.
+- **Local LLM Intelligence:** Powered by Ollama running open-source instruction-tuned models (e.g., Qwen / Gemma) locally for private, low-latency reasoning.
+- **Computer Vision & Hand Tracking:** Real-time gesture and landmark recognition using **OpenCV** and **MediaPipe**.
+- **Desktop Control & Automation:** **PyAutoGUI** coordinate mapping for virtual cursor motion, clicks, drag-and-drop, and shortcuts.
+- **Testing & Quality Assurance:** Property-Based Testing for coordinate boundary validation and automation hooks.
 
 ---
 
-## 💻 Hardware & System Requirements
+## Hardware & System Requirements
 
 - Webcam and microphone.
 - Multi-core CPU / GPU capable of local LLM inference via Ollama.
@@ -34,9 +34,9 @@ Developed for the **Kiro University Challenge**. Jarvis is an autonomous local A
 
 ---
 
-## 🚀 Quick Setup
+## Quick Setup
 
-`ash
+```bash
 # Clone the repository
 git clone https://github.com/danielibabet/jarvis-kiro-challenge.git
 cd jarvis-kiro-challenge
@@ -49,11 +49,11 @@ ollama run qwen2.5:latest
 
 # Run Jarvis
 python vision.py
-`
+```
 
 ---
 
-## ☕ Support & Author
+## Support & Author
 
 - **Daniel Ibáñez** - [@danielibabet](https://github.com/danielibabet)
 - If you find this project helpful, consider supporting: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/dibanezb)
